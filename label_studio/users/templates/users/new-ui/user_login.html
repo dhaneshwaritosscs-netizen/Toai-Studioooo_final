@@ -1,0 +1,943 @@
+{% extends 'users/new-ui/user_base.html' %}
+
+{% block content %}
+  {{ block.super }}
+  <script nonce="{{request.csp_nonce}}">
+    gaClientIdTrackingIframe('users.login.view');
+    // Give time for `ls_gaclient_id` to be set
+    setTimeout(() => {
+      const ls_gaclient_id = sessionStorage.getItem('ls_gaclient_id');
+      __lsa('users.login.view', { ls_gaclient_id });
+    }, 2000);
+  </script>
+{% endblock %}
+
+{% block user_content %}
+  <!-- System Requirements Popup -->
+  <div id="system-requirements-popup" class="system-requirements-popup" style="display: none !important; visibility: hidden !important; opacity: 0 !important;">
+    <div class="popup-overlay" onclick="closeSystemRequirementsPopup()"></div>
+    <div class="popup-content">
+      <div class="popup-header">
+        <h2>System Requirements</h2>
+        <button class="close-btn" id="close-popup-btn" type="button" onclick="if(typeof closeSystemRequirementsPopup === 'function') { closeSystemRequirementsPopup(); } else { const popup = document.getElementById('system-requirements-popup'); if(popup) { popup.classList.remove('show'); popup.style.display='none'; popup.style.visibility='hidden'; popup.style.opacity='0'; document.body.style.overflow='auto'; } }">&times;</button>
+      </div>
+      <div class="popup-body">
+        <div class="scroll-indicator">
+          <span>📜 Scroll to see all requirements</span>
+        </div>
+        <div class="requirements-content">
+          <h3>Please check your system requirements before using Label Studio:</h3>
+          
+          <div class="requirement-section">
+            <h4>🖥️ Operating System Requirements</h4>
+            <h5>Supported Operating Systems</h5>
+            <ul>
+              <li><strong>Windows:</strong> Windows 10 (version 1903) or later, Windows 11</li>
+              <li><strong>macOS:</strong> macOS 10.15 (Catalina) or later</li>
+              <li><strong>Linux:</strong> Ubuntu 18.04+, CentOS 7+, Debian 9+, or equivalent distributions</li>
+            </ul>
+            <h5>Tested Configuration</h5>
+            <ul>
+              <li><strong>OS:</strong> Windows 11 Home Single Language</li>
+              <li><strong>Architecture:</strong> 64-bit operating system, x64-based processor</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>💻 Hardware Requirements</h4>
+            <h5>Basic Requirements (Minimum)</h5>
+            <ul>
+              <li><strong>CPU:</strong> Intel Core i3 or AMD Ryzen 3 (2.0 GHz or higher)</li>
+              <li><strong>RAM:</strong> 4 GB minimum</li>
+              <li><strong>Storage:</strong> 5 GB free disk space</li>
+              <li><strong>Graphics:</strong> Integrated graphics (basic functionality)</li>
+            </ul>
+            <h5>Recommended Requirements (Smooth Experience)</h5>
+            <ul>
+              <li><strong>CPU:</strong> Intel Core i5 or AMD Ryzen 5 (2.4 GHz or higher)</li>
+              <li><strong>RAM:</strong> 8 GB or more</li>
+              <li><strong>Storage:</strong> 10 GB free disk space (SSD recommended)</li>
+              <li><strong>Graphics:</strong> Dedicated GPU with 1GB+ VRAM (for large images/videos)</li>
+            </ul>
+            <h5>Optimal Requirements (Heavy Usage)</h5>
+            <ul>
+              <li><strong>CPU:</strong> Intel Core i7 or AMD Ryzen 7 (2.4 GHz or higher)</li>
+              <li><strong>RAM:</strong> 16 GB or more</li>
+              <li><strong>Storage:</strong> 20 GB free disk space (SSD recommended)</li>
+              <li><strong>Graphics:</strong> Dedicated GPU with 2GB+ VRAM</li>
+            </ul>
+            <h5>Tested Hardware Configuration</h5>
+            <ul>
+              <li><strong>CPU:</strong> 13th Gen Intel(R) Core(TM) i7-13620H (2.40 GHz)</li>
+              <li><strong>RAM:</strong> 16.0 GB (15.6 GB usable) @ 5200 MT/s</li>
+              <li><strong>Graphics:</strong> Intel(R) UHD Graphics</li>
+              <li><strong>Storage:</strong> 954 GB total (420 GB used)</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>🌐 Browser Requirements</h4>
+            <h5>Supported Browsers</h5>
+            <ul>
+              <li><strong>Chrome:</strong> Version 90+ (recommended)</li>
+              <li><strong>Firefox:</strong> Version 88+</li>
+              <li><strong>Safari:</strong> Version 14+</li>
+              <li><strong>Edge:</strong> Version 90+</li>
+              <li><strong>Opera:</strong> Version 76+</li>
+            </ul>
+            <h5>Browser Features Required</h5>
+            <ul>
+              <li><strong>JavaScript:</strong> Must be enabled</li>
+              <li><strong>Cookies:</strong> Must be enabled</li>
+              <li><strong>Local Storage:</strong> Must be enabled</li>
+              <li><strong>WebGL:</strong> Required for 3D annotations</li>
+              <li><strong>WebRTC:</strong> Required for video annotations</li>
+              <li><strong>Canvas API:</strong> Required for image annotations</li>
+            </ul>
+            <h5>Browser Extensions</h5>
+            <ul>
+              <li><strong>Ad Blockers:</strong> May interfere with functionality (disable for Label Studio)</li>
+              <li><strong>Privacy Extensions:</strong> May block required features</li>
+              <li><strong>VPN:</strong> May affect performance (use stable connection)</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>📶 Network Requirements</h4>
+            <h5>Internet Connection</h5>
+            <ul>
+              <li><strong>Minimum Speed:</strong> 5 Mbps download, 1 Mbps upload</li>
+              <li><strong>Recommended Speed:</strong> 25 Mbps download, 5 Mbps upload</li>
+              <li><strong>Stable Connection:</strong> Required for real-time collaboration</li>
+              <li><strong>Low Latency:</strong> <100ms ping for smooth experience</li>
+            </ul>
+            <h5>Network Configuration</h5>
+            <ul>
+              <li><strong>Ports:</strong> No specific ports required (uses standard HTTP/HTTPS)</li>
+              <li><strong>Firewall:</strong> Allow web traffic (ports 80, 443)</li>
+              <li><strong>Proxy:</strong> Supported but may affect performance</li>
+              <li><strong>Corporate Networks:</strong> May require IT approval for access</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>📱 Display Requirements</h4>
+            <h5>Screen Resolution</h5>
+            <ul>
+              <li><strong>Minimum:</strong> 1024x768 pixels</li>
+              <li><strong>Recommended:</strong> 1920x1080 pixels or higher</li>
+              <li><strong>Optimal:</strong> 2560x1440 pixels or higher (for large datasets)</li>
+            </ul>
+            <h5>Display Features</h5>
+            <ul>
+              <li><strong>Color Depth:</strong> 24-bit color minimum</li>
+              <li><strong>Refresh Rate:</strong> 60Hz minimum</li>
+              <li><strong>Multiple Monitors:</strong> Supported (better for large projects)</li>
+              <li><strong>Touch Screen:</strong> Supported (for touch annotations)</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>🖱️ Input Devices</h4>
+            <h5>Required</h5>
+            <ul>
+              <li><strong>Mouse:</strong> Standard 2-button mouse with scroll wheel</li>
+              <li><strong>Keyboard:</strong> Standard QWERTY keyboard</li>
+            </ul>
+            <h5>Optional (Enhanced Experience)</h5>
+            <ul>
+              <li><strong>Graphics Tablet:</strong> For precise annotations</li>
+              <li><strong>Stylus:</strong> For touch screen annotations</li>
+              <li><strong>Multi-touch Trackpad:</strong> For gesture support</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>⚡ Performance Considerations</h4>
+            <h5>Memory Usage</h5>
+            <ul>
+              <li><strong>Basic Usage:</strong> 2-4 GB RAM</li>
+              <li><strong>Medium Projects:</strong> 4-8 GB RAM</li>
+              <li><strong>Large Projects:</strong> 8-16 GB RAM</li>
+              <li><strong>Very Large Projects:</strong> 16+ GB RAM</li>
+            </ul>
+            <h5>Storage Requirements</h5>
+            <ul>
+              <li><strong>Browser Cache:</strong> 1-2 GB (for cached data)</li>
+              <li><strong>Downloads:</strong> Variable (depends on export size)</li>
+              <li><strong>Temporary Files:</strong> 500 MB - 2 GB</li>
+            </ul>
+            <h5>CPU Usage</h5>
+            <ul>
+              <li><strong>Idle:</strong> Minimal CPU usage</li>
+              <li><strong>Basic Annotation:</strong> Low CPU usage</li>
+              <li><strong>Image Processing:</strong> Moderate CPU usage</li>
+              <li><strong>Video Processing:</strong> High CPU usage</li>
+              <li><strong>Real-time Collaboration:</strong> Moderate CPU usage</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>♿ Accessibility Requirements</h4>
+            <h5>Visual Accessibility</h5>
+            <ul>
+              <li><strong>Screen Reader:</strong> Compatible with NVDA, JAWS, VoiceOver</li>
+              <li><strong>High Contrast:</strong> Supported</li>
+              <li><strong>Zoom:</strong> Browser zoom up to 200% supported</li>
+              <li><strong>Color Blindness:</strong> Color alternatives provided</li>
+            </ul>
+            <h5>Motor Accessibility</h5>
+            <ul>
+              <li><strong>Keyboard Navigation:</strong> Full keyboard support</li>
+              <li><strong>Voice Control:</strong> Compatible with voice control software</li>
+              <li><strong>Switch Control:</strong> Supported on compatible devices</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>🔒 Security Requirements</h4>
+            <h5>Browser Security</h5>
+            <ul>
+              <li><strong>HTTPS:</strong> Always use HTTPS connection</li>
+              <li><strong>Updated Browser:</strong> Keep browser updated</li>
+              <li><strong>Security Extensions:</strong> Compatible with security extensions</li>
+              <li><strong>Private Mode:</strong> Supported but may limit functionality</li>
+            </ul>
+            <h5>Data Security</h5>
+            <ul>
+              <li><strong>Local Storage:</strong> Data stored securely in browser</li>
+              <li><strong>Session Management:</strong> Automatic logout after inactivity</li>
+              <li><strong>Data Encryption:</strong> All data encrypted in transit</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>🔧 Troubleshooting</h4>
+            <h5>Common Issues</h5>
+            <ol>
+              <li><strong>Slow Performance:</strong> Close other browser tabs, restart browser</li>
+              <li><strong>Display Issues:</strong> Check browser zoom level, clear cache</li>
+              <li><strong>Upload Problems:</strong> Check internet connection, file size limits</li>
+              <li><strong>Annotation Issues:</strong> Ensure JavaScript is enabled</li>
+              <li><strong>Login Problems:</strong> Clear browser cookies and cache</li>
+            </ol>
+            <h5>Browser-Specific Solutions</h5>
+            <ul>
+              <li><strong>Chrome:</strong> Clear browsing data, disable extensions temporarily</li>
+              <li><strong>Firefox:</strong> Refresh Firefox, check about:config settings</li>
+              <li><strong>Safari:</strong> Clear website data, disable content blockers</li>
+              <li><strong>Edge:</strong> Clear browsing data, disable tracking prevention</li>
+            </ul>
+            <h5>Performance Optimization</h5>
+            <ul>
+              <li><strong>Close Unnecessary Tabs:</strong> Free up memory</li>
+              <li><strong>Restart Browser:</strong> Clear memory leaks</li>
+              <li><strong>Update Browser:</strong> Get latest performance improvements</li>
+              <li><strong>Check Internet Speed:</strong> Use speed test tools</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>📞 Support Information</h4>
+            <h5>Getting Help</h5>
+            <ul>
+              <li><strong>Documentation:</strong> Check Documentation</li>
+              <li><strong>Community:</strong> Join user community forums</li>
+              <li><strong>Support:</strong> Contact technical support if needed</li>
+            </ul>
+            <h5>System Check</h5>
+            <ul>
+              <li><strong>Browser Test:</strong> Use browser compatibility checker</li>
+              <li><strong>Speed Test:</strong> Check internet connection speed</li>
+              <li><strong>System Info:</strong> Verify system meets requirements</li>
+            </ul>
+          </div>
+
+          <div class="requirement-section">
+            <h4>📋 Document Information</h4>
+            <p><strong>Last Updated:</strong> Current date</p>
+            <p><strong>Tested Environment:</strong> Windows 11, Intel i7-13620H, 16GB RAM</p>
+          </div>
+        </div>
+      </div>
+      <div class="popup-footer">
+        <button class="glassmorphism-button export-btn" onclick="exportSystemRequirements()">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <form id="login-form" action="{% url 'user-login' %}?next={{ next }}" method="post">
+    {% csrf_token %}
+    <div class="input-wrapper">
+      <label>Email/Username</label>
+      <div class="input-container">
+        <input type="text" class="glassmorphism-input" name="email" id="email" value="{{ form.data.email }}" placeholder="Email/Username">
+        <span class="input-icon">🔒</span>
+      </div>
+    </div>
+    <div class="input-wrapper">
+      <label>Password</label>
+      <div class="input-container">
+        <input type="password" class="glassmorphism-input" name="password" id="password" placeholder="Password">
+        <span class="input-icon">🔒</span>
+      </div>
+    </div>
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <p class="error">
+          {{ error }}
+        </p>
+      {% endfor %}
+    {% endif %}
+    <div class="form-options">
+      <div class="checkbox-wrapper">
+        <input type="checkbox" id="persist_session" name="persist_session" class="glassmorphism-checkbox" checked="checked" />
+        <label for="persist_session">Keep me logged in this browser</label>
+      </div>
+    </div>
+    <button type="submit" class="glassmorphism-button">LOGIN</button>
+  </form>
+
+  <!-- System Requirements Buttons Below Login -->
+  <div class="system-requirements-button-container below-login" style="display: flex !important; flex-direction: row !important; gap: 8px !important; width: 100% !important;">
+    <button type="button" class="system-requirements-btn login-theme" onclick="showSystemRequirementsPopup()" style="flex: 1 !important; display: flex !important; align-items: center !important; justify-content: center !important;">Check Requirements
+    </button>
+    <button type="button" class="download-requirements-btn login-theme" onclick="downloadRequirementsDirectly()" style="flex: 1 !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+      📥 Download
+    </button>
+  </div>
+
+  <script>
+    function showSystemRequirementsPopup() {
+      console.log('Opening popup...');
+      const popup = document.getElementById('system-requirements-popup');
+      if (popup) {
+        popup.classList.add('show');
+        popup.style.display = 'flex';
+        popup.style.visibility = 'visible';
+        popup.style.opacity = '1';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        console.log('Popup opened successfully');
+        
+        // Add scroll listener to hide scroll indicator
+        const popupBody = document.querySelector('.popup-body');
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        
+        if (popupBody && scrollIndicator) {
+          popupBody.addEventListener('scroll', function() {
+            if (popupBody.scrollTop > 10) {
+              scrollIndicator.style.opacity = '0';
+              scrollIndicator.style.transform = 'scale(0.8)';
+            } else {
+              scrollIndicator.style.opacity = '1';
+              scrollIndicator.style.transform = 'scale(1)';
+            }
+          });
+        }
+      } else {
+        console.error('Popup element not found!');
+      }
+    }
+
+    // Global function for closing popup
+    function closeSystemRequirementsPopup() {
+      try {
+        console.log('Closing popup...'); // Debug log
+        const popup = document.getElementById('system-requirements-popup');
+        if (popup) {
+          popup.classList.remove('show');
+          popup.style.display = 'none';
+          popup.style.visibility = 'hidden';
+          popup.style.opacity = '0';
+          document.body.style.overflow = 'auto'; // Restore scrolling
+          console.log('Popup closed successfully!'); // Debug log
+        } else {
+          console.error('Popup element not found!'); // Debug log
+        }
+      } catch (error) {
+        console.error('Error closing popup:', error);
+      }
+    }
+
+    // Make function globally available
+    window.closeSystemRequirementsPopup = closeSystemRequirementsPopup;
+
+    // Test function - you can call this from browser console
+    window.testClosePopup = function() {
+      console.log('Testing close popup function...');
+      closeSystemRequirementsPopup();
+    };
+
+    // Multiple approaches to ensure close button works
+    function setupCloseButton() {
+      const closeBtn = document.getElementById('close-popup-btn');
+      console.log('Setting up close button:', closeBtn);
+      
+      if (closeBtn) {
+        // Remove any existing event listeners
+        closeBtn.onclick = null;
+        
+        // Method 1: Direct onclick assignment
+        closeBtn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Direct onclick triggered!');
+          closeSystemRequirementsPopup();
+          return false;
+        };
+        
+        // Method 2: AddEventListener
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('AddEventListener click triggered!');
+          closeSystemRequirementsPopup();
+        });
+        
+        // Method 3: Mousedown as backup
+        closeBtn.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Mousedown triggered!');
+          closeSystemRequirementsPopup();
+        });
+        
+        // Method 4: Touch events for mobile
+        closeBtn.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Touch end triggered!');
+          closeSystemRequirementsPopup();
+        });
+        
+        console.log('Close button setup complete!');
+      } else {
+        console.error('Close button not found during setup!');
+        // Retry after a short delay
+        setTimeout(setupCloseButton, 100);
+      }
+    }
+
+    // Ensure popup is hidden on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const popup = document.getElementById('system-requirements-popup');
+      if (popup) {
+        popup.classList.remove('show');
+        popup.style.display = 'none';
+        popup.style.visibility = 'hidden';
+        popup.style.opacity = '0';
+        console.log('Popup explicitly hidden on page load');
+      }
+    });
+
+    // Also hide on window load as backup
+    window.addEventListener('load', function() {
+      const popup = document.getElementById('system-requirements-popup');
+      if (popup) {
+        popup.classList.remove('show');
+        popup.style.display = 'none';
+        popup.style.visibility = 'hidden';
+        popup.style.opacity = '0';
+        console.log('Popup explicitly hidden on window load');
+      }
+    });
+
+    // Also setup when window loads (backup)
+    window.addEventListener('load', function() {
+      setTimeout(setupCloseButton, 100);
+    });
+
+    // Emergency fallback - if everything else fails
+    setTimeout(function() {
+      const closeBtn = document.getElementById('close-popup-btn');
+      if (closeBtn && !closeBtn.onclick) {
+        console.log('Emergency fallback activated!');
+        closeBtn.onclick = function() {
+          const popup = document.getElementById('system-requirements-popup');
+          if (popup) {
+            popup.classList.remove('show');
+            popup.style.display = 'none';
+            popup.style.visibility = 'hidden';
+            popup.style.opacity = '0';
+            document.body.style.overflow = 'auto';
+          }
+        };
+      }
+    }, 1000);
+
+    function downloadRequirementsDirectly() {
+      // Show loading state
+      const downloadBtn = document.querySelector('.download-requirements-btn');
+      const originalText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = '⏳ Downloading...';
+      downloadBtn.disabled = true;
+      
+      // Create and download the file directly
+      const fullRequirements = `# Label Studio - User System Requirements
+
+This document outlines the system requirements that users need to properly use Label Studio. The project is already hosted, so users don't need to install anything.
+
+## Operating System Requirements
+
+### Supported Operating Systems
+- **Windows**: Windows 10 (version 1903) or later, Windows 11
+- **macOS**: macOS 10.15 (Catalina) or later
+- **Linux**: Ubuntu 18.04+, CentOS 7+, Debian 9+, or equivalent distributions
+
+### Tested Configuration
+- **OS**: Windows 11 Home Single Language
+- **Architecture**: 64-bit operating system, x64-based processor
+
+## Hardware Requirements
+
+### Basic Requirements (Minimum)
+- **CPU**: Intel Core i3 or AMD Ryzen 3 (2.0 GHz or higher)
+- **RAM**: 4 GB minimum
+- **Storage**: 5 GB free disk space
+- **Graphics**: Integrated graphics (basic functionality)
+
+### Recommended Requirements (Smooth Experience)
+- **CPU**: Intel Core i5 or AMD Ryzen 5 (2.4 GHz or higher)
+- **RAM**: 8 GB or more
+- **Storage**: 10 GB free disk space (SSD recommended)
+- **Graphics**: Dedicated GPU with 1GB+ VRAM (for large images/videos)
+
+### Optimal Requirements (Heavy Usage)
+- **CPU**: Intel Core i7 or AMD Ryzen 7 (2.4 GHz or higher)
+- **RAM**: 16 GB or more
+- **Storage**: 20 GB free disk space (SSD recommended)
+- **Graphics**: Dedicated GPU with 2GB+ VRAM
+
+### Tested Hardware Configuration
+- **CPU**: 13th Gen Intel(R) Core(TM) i7-13620H (2.40 GHz)
+- **RAM**: 16.0 GB (15.6 GB usable) @ 5200 MT/s
+- **Graphics**: Intel(R) UHD Graphics
+- **Storage**: 954 GB total (420 GB used)
+
+## Browser Requirements
+
+### Supported Browsers
+- **Chrome**: Version 90+ (recommended)
+- **Firefox**: Version 88+
+- **Safari**: Version 14+
+- **Edge**: Version 90+
+- **Opera**: Version 76+
+
+### Browser Features Required
+- **JavaScript**: Must be enabled
+- **Cookies**: Must be enabled
+- **Local Storage**: Must be enabled
+- **WebGL**: Required for 3D annotations
+- **WebRTC**: Required for video annotations
+- **Canvas API**: Required for image annotations
+
+### Browser Extensions
+- **Ad Blockers**: May interfere with functionality (disable for Label Studio)
+- **Privacy Extensions**: May block required features
+- **VPN**: May affect performance (use stable connection)
+
+## Network Requirements
+
+### Internet Connection
+- **Minimum Speed**: 5 Mbps download, 1 Mbps upload
+- **Recommended Speed**: 25 Mbps download, 5 Mbps upload
+- **Stable Connection**: Required for real-time collaboration
+- **Low Latency**: <100ms ping for smooth experience
+
+### Network Configuration
+- **Ports**: No specific ports required (uses standard HTTP/HTTPS)
+- **Firewall**: Allow web traffic (ports 80, 443)
+- **Proxy**: Supported but may affect performance
+- **Corporate Networks**: May require IT approval for access
+
+## Display Requirements
+
+### Screen Resolution
+- **Minimum**: 1024x768 pixels
+- **Recommended**: 1920x1080 pixels or higher
+- **Optimal**: 2560x1440 pixels or higher (for large datasets)
+
+### Display Features
+- **Color Depth**: 24-bit color minimum
+- **Refresh Rate**: 60Hz minimum
+- **Multiple Monitors**: Supported (better for large projects)
+- **Touch Screen**: Supported (for touch annotations)
+
+## Input Devices
+
+### Required
+- **Mouse**: Standard 2-button mouse with scroll wheel
+- **Keyboard**: Standard QWERTY keyboard
+
+### Optional (Enhanced Experience)
+- **Graphics Tablet**: For precise annotations
+- **Stylus**: For touch screen annotations
+- **Multi-touch Trackpad**: For gesture support
+
+## Performance Considerations
+
+### Memory Usage
+- **Basic Usage**: 2-4 GB RAM
+- **Medium Projects**: 4-8 GB RAM
+- **Large Projects**: 8-16 GB RAM
+- **Very Large Projects**: 16+ GB RAM
+
+### Storage Requirements
+- **Browser Cache**: 1-2 GB (for cached data)
+- **Downloads**: Variable (depends on export size)
+- **Temporary Files**: 500 MB - 2 GB
+
+### CPU Usage
+- **Idle**: Minimal CPU usage
+- **Basic Annotation**: Low CPU usage
+- **Image Processing**: Moderate CPU usage
+- **Video Processing**: High CPU usage
+- **Real-time Collaboration**: Moderate CPU usage
+
+## Accessibility Requirements
+
+### Visual Accessibility
+- **Screen Reader**: Compatible with NVDA, JAWS, VoiceOver
+- **High Contrast**: Supported
+- **Zoom**: Browser zoom up to 200% supported
+- **Color Blindness**: Color alternatives provided
+
+### Motor Accessibility
+- **Keyboard Navigation**: Full keyboard support
+- **Voice Control**: Compatible with voice control software
+- **Switch Control**: Supported on compatible devices
+
+## Security Requirements
+
+### Browser Security
+- **HTTPS**: Always use HTTPS connection
+- **Updated Browser**: Keep browser updated
+- **Security Extensions**: Compatible with security extensions
+- **Private Mode**: Supported but may limit functionality
+
+### Data Security
+- **Local Storage**: Data stored securely in browser
+- **Session Management**: Automatic logout after inactivity
+- **Data Encryption**: All data encrypted in transit
+
+## Troubleshooting
+
+### Common Issues
+1. **Slow Performance**: Close other browser tabs, restart browser
+2. **Display Issues**: Check browser zoom level, clear cache
+3. **Upload Problems**: Check internet connection, file size limits
+4. **Annotation Issues**: Ensure JavaScript is enabled
+5. **Login Problems**: Clear browser cookies and cache
+
+### Browser-Specific Solutions
+- **Chrome**: Clear browsing data, disable extensions temporarily
+- **Firefox**: Refresh Firefox, check about:config settings
+- **Safari**: Clear website data, disable content blockers
+- **Edge**: Clear browsing data, disable tracking prevention
+
+### Performance Optimization
+- **Close Unnecessary Tabs**: Free up memory
+- **Restart Browser**: Clear memory leaks
+- **Update Browser**: Get latest performance improvements
+- **Check Internet Speed**: Use speed test tools
+
+## Support Information
+
+### Getting Help
+- **Documentation**: Check Documentation
+- **Community**: Join user community forums
+- **Support**: Contact technical support if needed
+
+### System Check
+- **Browser Test**: Use browser compatibility checker
+- **Speed Test**: Check internet connection speed
+- **System Info**: Verify system meets requirements
+
+---
+
+**Last Updated**: Current date
+**Tested Environment**: Windows 11, Intel i7-13620H, 16GB RAM`;
+
+      // Create and download the file
+      const blob = new Blob([fullRequirements], { type: 'text/markdown' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Label_Studio_System_Requirements.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert('Label Studio system requirements file downloaded successfully! 📥');
+      
+      // Reset button
+      setTimeout(() => {
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.disabled = false;
+      }, 1000);
+    }
+
+    function exportSystemRequirements() {
+      // Show loading state
+      const exportBtn = document.querySelector('.export-btn');
+      const originalText = exportBtn.innerHTML;
+      exportBtn.innerHTML = '⏳ Downloading...';
+      exportBtn.disabled = true;
+      
+      // Get the requirements content
+      const requirementsContent = document.querySelector('.requirements-content').innerHTML;
+      
+      // Create a comprehensive requirements document
+      const fullRequirements = `# TOAI Studio - System Requirements
+
+This document outlines the system requirements that users need to properly use TOAI Studio. The project is already hosted, so users don't need to install anything.
+
+## Operating System Requirements
+
+### Supported Operating Systems
+- **Windows**: Windows 10 (version 1903) or later, Windows 11
+- **macOS**: macOS 10.15 (Catalina) or later
+- **Linux**: Ubuntu 18.04+, CentOS 7+, Debian 9+, or equivalent distributions
+- **Mobile**: Android 8.0+, iOS 12.0+ (through web browser)
+
+### Tested Configuration
+- **OS**: Windows 11 Home Single Language
+- **Architecture**: 64-bit operating system, x64-based processor
+
+## Hardware Requirements
+
+### Basic Requirements (Minimum)
+- **CPU**: Intel Core i3 or AMD Ryzen 3 (2.0 GHz or higher)
+- **RAM**: 4 GB minimum
+- **Storage**: 5 GB free disk space
+- **Graphics**: Integrated graphics (basic functionality)
+
+### Recommended Requirements (Smooth Experience)
+- **CPU**: Intel Core i5 or AMD Ryzen 5 (2.4 GHz or higher)
+- **RAM**: 8 GB or more
+- **Storage**: 10 GB free disk space (SSD recommended)
+- **Graphics**: Dedicated GPU with 1GB+ VRAM (for large images/videos)
+
+### Optimal Requirements (Heavy Usage)
+- **CPU**: Intel Core i7 or AMD Ryzen 7 (2.4 GHz or higher)
+- **RAM**: 16 GB or more
+- **Storage**: 20 GB free disk space (SSD recommended)
+- **Graphics**: Dedicated GPU with 2GB+ VRAM
+
+### Tested Hardware Configuration
+- **CPU**: 13th Gen Intel(R) Core(TM) i7-13620H (2.40 GHz)
+- **RAM**: 16.0 GB (15.6 GB usable) @ 5200 MT/s
+- **Graphics**: Intel(R) UHD Graphics
+- **Storage**: 954 GB total (420 GB used)
+
+## Browser Requirements
+
+### Supported Browsers
+- **Chrome**: Version 90+ (recommended)
+- **Firefox**: Version 88+
+- **Safari**: Version 14+
+- **Edge**: Version 90+
+- **Opera**: Version 76+
+
+### Browser Features Required
+- **JavaScript**: Must be enabled
+- **Cookies**: Must be enabled
+- **Local Storage**: Must be enabled
+- **WebGL**: Required for 3D annotations
+- **WebRTC**: Required for video annotations
+- **Canvas API**: Required for image annotations
+
+### Browser Extensions
+- **Ad Blockers**: May interfere with functionality (disable for Label Studio)
+- **Privacy Extensions**: May block required features
+- **VPN**: May affect performance (use stable connection)
+
+## Network Requirements
+
+### Internet Connection
+- **Minimum Speed**: 5 Mbps download, 1 Mbps upload
+- **Recommended Speed**: 25 Mbps download, 5 Mbps upload
+- **Stable Connection**: Required for real-time collaboration
+- **Low Latency**: <100ms ping for smooth experience
+
+### Network Configuration
+- **Ports**: No specific ports required (uses standard HTTP/HTTPS)
+- **Firewall**: Allow web traffic (ports 80, 443)
+- **Proxy**: Supported but may affect performance
+- **Corporate Networks**: May require IT approval for access
+
+## Display Requirements
+
+### Screen Resolution
+- **Minimum**: 1024x768 pixels
+- **Recommended**: 1920x1080 pixels or higher
+- **Optimal**: 2560x1440 pixels or higher (for large datasets)
+
+### Display Features
+- **Color Depth**: 24-bit color minimum
+- **Refresh Rate**: 60Hz minimum
+- **Multiple Monitors**: Supported (better for large projects)
+- **Touch Screen**: Supported (for touch annotations)
+
+## Input Devices
+
+### Required
+- **Mouse**: Standard 2-button mouse with scroll wheel
+- **Keyboard**: Standard QWERTY keyboard
+
+### Optional (Enhanced Experience)
+- **Graphics Tablet**: For precise annotations
+- **Stylus**: For touch screen annotations
+- **Multi-touch Trackpad**: For gesture support
+
+## Performance Considerations
+
+### Memory Usage
+- **Basic Usage**: 2-4 GB RAM
+- **Medium Projects**: 4-8 GB RAM
+- **Large Projects**: 8-16 GB RAM
+- **Very Large Projects**: 16+ GB RAM
+
+### Storage Requirements
+- **Browser Cache**: 1-2 GB (for cached data)
+- **Downloads**: Variable (depends on export size)
+- **Temporary Files**: 500 MB - 2 GB
+
+### CPU Usage
+- **Idle**: Minimal CPU usage
+- **Basic Annotation**: Low CPU usage
+- **Image Processing**: Moderate CPU usage
+- **Video Processing**: High CPU usage
+- **Real-time Collaboration**: Moderate CPU usage
+
+## Accessibility Requirements
+
+### Visual Accessibility
+- **Screen Reader**: Compatible with NVDA, JAWS, VoiceOver
+- **High Contrast**: Supported
+- **Zoom**: Browser zoom up to 200% supported
+- **Color Blindness**: Color alternatives provided
+
+### Motor Accessibility
+- **Keyboard Navigation**: Full keyboard support
+- **Voice Control**: Compatible with voice control software
+- **Switch Control**: Supported on compatible devices
+
+## Security Requirements
+
+### Browser Security
+- **HTTPS**: Always use HTTPS connection
+- **Updated Browser**: Keep browser updated
+- **Security Extensions**: Compatible with security extensions
+- **Private Mode**: Supported but may limit functionality
+
+### Data Security
+- **Local Storage**: Data stored securely in browser
+- **Session Management**: Automatic logout after inactivity
+- **Data Encryption**: All data encrypted in transit
+
+## Troubleshooting
+
+### Common Issues
+1. **Slow Performance**: Close other browser tabs, restart browser
+2. **Display Issues**: Check browser zoom level, clear cache
+3. **Upload Problems**: Check internet connection, file size limits
+4. **Annotation Issues**: Ensure JavaScript is enabled
+5. **Login Problems**: Clear browser cookies and cache
+
+### Browser-Specific Solutions
+- **Chrome**: Clear browsing data, disable extensions temporarily
+- **Firefox**: Refresh Firefox, check about:config settings
+- **Safari**: Clear website data, disable content blockers
+- **Edge**: Clear browsing data, disable tracking prevention
+
+### Performance Optimization
+- **Close Unnecessary Tabs**: Free up memory
+- **Restart Browser**: Clear memory leaks
+- **Update Browser**: Get latest performance improvements
+- **Check Internet Speed**: Use speed test tools
+
+## Mobile Requirements
+
+### Android
+- **Version**: Android 8.0+ (API level 26+)
+- **Browser**: Chrome 90+, Firefox 88+, Samsung Internet 13+
+- **RAM**: 3 GB minimum, 6 GB recommended
+- **Storage**: 2 GB free space
+
+### iOS
+- **Version**: iOS 12.0+
+- **Browser**: Safari 14+, Chrome 90+
+- **RAM**: 2 GB minimum, 4 GB recommended
+- **Storage**: 2 GB free space
+
+### Mobile Limitations
+- **Screen Size**: May limit annotation precision
+- **Performance**: Slower than desktop for large files
+- **Features**: Some advanced features may be limited
+
+## Support Information
+
+### Getting Help
+- **Documentation**: Check online help center
+- **Community**: Join user community forums
+- **Support**: Contact technical support if needed
+
+### System Check
+- **Browser Test**: Use browser compatibility checker
+- **Speed Test**: Check internet connection speed
+- **System Info**: Verify system meets requirements
+
+---
+
+**Last Updated**: ${new Date().toLocaleDateString()}
+**Tested Environment**: Windows 11, Intel i7-13620H, 16GB RAM
+**Note**: These requirements are only for users. The project is already hosted and ready to use.
+
+---
+
+**Important Notes**
+- Disable ad blockers for Label Studio functionality
+- Use stable internet connection for best performance
+- Close unnecessary browser tabs to free up memory
+- Keep your browser updated for latest features
+
+**Support**
+If you experience any issues, please check the troubleshooting section or contact technical support.`;
+
+      // Create and download the file
+      const blob = new Blob([fullRequirements], { type: 'text/markdown' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Label_Studio_System_Requirements.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert('Label Studio system requirements file downloaded successfully! 📥');
+      
+      // Reset button
+      setTimeout(() => {
+        exportBtn.innerHTML = originalText;
+        exportBtn.disabled = false;
+      }, 1000);
+    }
+
+    // Close popup when pressing Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeSystemRequirementsPopup();
+      }
+    });
+
+    // Show popup automatically on page load (optional)
+    // Uncomment the line below if you want the popup to show automatically
+    // window.addEventListener('load', function() { setTimeout(showSystemRequirementsPopup, 1000); });
+  </script>
+{% endblock %}
+
