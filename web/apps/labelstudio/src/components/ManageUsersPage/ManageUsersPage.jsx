@@ -1866,6 +1866,8 @@ export const ManageUsersPage = ({ onClose }) => {
                   })()}
                   
                   {/* Project Assignment Dropdown - Show for both admin and client users */}
+                  {/* COMMENTED OUT: Project Assignment Dropdown UI */}
+                  {/*
                   <div>
                       <label style={{ fontSize: "12px", color: "#6b7280", marginBottom: "4px", display: "block" }}>
                         {isCurrentUserAdmin ? "Assign Projects" : "Assign Projects to User"}
@@ -2016,6 +2018,7 @@ export const ManageUsersPage = ({ onClose }) => {
                         )}
                       </div>
                     </div>
+                  */}
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px" }}>
                   <button onClick={() => setShowAddModal(false)} style={{ padding: "8px 14px", borderRadius: "8px", border: "1px solid #e5e7eb", background: "#fff", cursor: "pointer" }}>Cancel</button>
