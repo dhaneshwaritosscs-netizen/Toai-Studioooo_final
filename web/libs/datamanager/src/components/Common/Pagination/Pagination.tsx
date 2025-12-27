@@ -39,7 +39,7 @@ interface PaginationProps {
   onPageLoad?: (pageNumber: number, pageSize: number) => Promise<void>;
 }
 
-export const DEFAULT_PAGE_SIZE = 30;
+export const DEFAULT_PAGE_SIZE = 1000;
 
 const isSystemEvent = (e: KeyboardEvent<HTMLInputElement>): boolean => {
   return (

@@ -1,4 +1,21 @@
 # Label Studio
+/// for starting the server
+Complete Setup Order
+Run these in separate terminal windows in this order:
+Terminal 1 - Migration (one-time setup):
+Terminal 2 - Backend:
+Terminal 3 - Frontend:
+Additional Migration Commands
+Create new migrations (if you modify models):
+Collect static files (if needed):
+Quick Reference
+Migration: poetry run python label_studio/manage.py migrate
+Backend: poetry run python label_studio/manage.py runserver 0.0.0.0:8080
+Frontend: yarn dev (from web directory)
+Note: Run migration once before starting the backend. After that, start the backend and frontend servers.
+
+////end
+
 
 Label Studio is a complex, NX-managed project divided into three main components:
 

@@ -489,23 +489,36 @@ const Model = types
       return !!self.drawingRegion;
     },
 
-    get imageTransform() {
-      const imgStyle = {
-        // scale transform leaves gaps on image border, so much better to change image sizes
-        width: `${self.stageWidth * self.zoomScale}px`,
-        height: `${self.stageHeight * self.zoomScale}px`,
+    /**
+     * Zoom/pan transform for the underlying DOM image + overlay canvas.
+     *
+     * IMPORTANT:
+     * - Zoom uses CSS `transform: scale()` so it doesn't change layout box size (prevents shifting).
+     * - `transform-origin: center` keeps zoom anchored to the center.
+     * - Rotation is handled separately via `imageContentTransform` to stay aligned with Konva Stage rotation.
+     */
+    get imageZoomTransform() {
+      const { zoomingPositionX = 0, zoomingPositionY = 0 } = self;
+
+      return {
+        width: `${self.stageWidth}px`,
+        height: `${self.stageHeight}px`,
+        // Keep origin top-left to match the zoom/pan math in `handleZoom()` (anchor point stays fixed).
         transformOrigin: "left top",
-        // We should always set some transform to make the image rendering in the same way all the time
-        transform: "translate3d(0,0,0)",
-        filter: `brightness(${self.brightnessGrade}%) contrast(${self.contrastGrade}%)`,
+        // Keep order: scale first, then translate (matches math used in handleZoom and panning)
+        transform: `translate3d(${zoomingPositionX}px,${zoomingPositionY}px,0) scale(${self.zoomScale})`,
       };
+    },
+
+    /**
+     * Rotation transform for the underlying DOM image + overlay canvas.
+     * Kept compatible with Konva Stage rotation/offset logic.
+     */
+    get imageContentTransform() {
       const imgTransform = [];
 
-      if (self.zoomScale !== 1) {
-        const { zoomingPositionX = 0, zoomingPositionY = 0 } = self;
-
-        imgTransform.push(`translate3d(${zoomingPositionX}px,${zoomingPositionY}px, 0)`);
-      }
+      // We should always set some transform to make the image rendering in the same way all the time
+      imgTransform.push("translate3d(0,0,0)");
 
       if (self.rotation) {
         const translate = {
@@ -514,15 +527,22 @@ const Model = types
           270: "-100%, 0",
         };
 
-        // there is a top left origin already set for zoom; so translate+rotate
         imgTransform.push(`rotate(${self.rotation}deg)`);
         imgTransform.push(`translate(${translate[self.rotation] || "0, 0"})`);
       }
 
-      if (imgTransform?.length > 0) {
-        imgStyle.transform = imgTransform.join(" ");
-      }
-      return imgStyle;
+      return {
+        width: "100%",
+        height: "100%",
+        transformOrigin: "left top",
+        transform: imgTransform.join(" "),
+      };
+    },
+
+    get imageFilterStyle() {
+      return {
+        filter: `brightness(${self.brightnessGrade}%) contrast(${self.contrastGrade}%)`,
+      };
     },
 
     get maxScale() {

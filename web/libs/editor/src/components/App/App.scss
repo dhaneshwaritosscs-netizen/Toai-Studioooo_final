@@ -70,13 +70,14 @@ body {
   justify-content: space-between;
 
   &__annotation {
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 20px;
-    margin: 1.5rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* Remove the card/box around the annotation area so the left content (image) displays directly */
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    border: none;
   }
 
   &__infobar {

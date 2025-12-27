@@ -25,7 +25,7 @@ export const SNAP_TO_PIXEL_MODE = {
 };
 
 export const Image = observer(
-  forwardRef(({ imageEntity, imageTransform, updateImageSize, usedValue, size, overlay }, ref) => {
+  forwardRef(({ imageEntity, imageZoomTransform, imageContentTransform, imageFilterStyle, updateImageSize, usedValue, size, overlay }, ref) => {
     const imageSize = useMemo(() => {
       return {
         width: size.width === 1 ? "100%" : size.width,
@@ -43,15 +43,19 @@ export const Image = observer(
 
     return (
       <Block name="image" style={imageSize}>
-        {overlay}
-        <ImageRenderer
-          alt="image"
-          ref={ref}
-          src={imageEntity.currentSrc}
-          onLoad={onLoad}
-          isLoaded={imageEntity.imageLoaded}
-          imageTransform={imageTransform}
-        />
+        <Elem name="zoom" style={imageZoomTransform}>
+          <Elem name="content" style={imageContentTransform}>
+            {overlay}
+            <ImageRenderer
+              alt="image"
+              ref={ref}
+              src={imageEntity.currentSrc}
+              onLoad={onLoad}
+              isLoaded={imageEntity.imageLoaded}
+              imageStyle={imageFilterStyle}
+            />
+          </Elem>
+        </Elem>
       </Block>
     );
   }),
@@ -63,12 +67,12 @@ const imgDefaultProps = {};
 if (isFF(FF_LSDV_4711)) imgDefaultProps.crossOrigin = "anonymous";
 
 const ImageRenderer = observer(
-  forwardRef(({ src, onLoad, imageTransform, isLoaded }, ref) => {
+  forwardRef(({ src, onLoad, imageStyle, isLoaded }, ref) => {
     const imageStyles = useMemo(() => {
-      const style = imageTransform ?? {};
+      const style = imageStyle ?? {};
 
       return { ...style, maxWidth: "unset", visibility: isLoaded ? "visible" : "hidden" };
-    }, [imageTransform, isLoaded]);
+    }, [imageStyle, isLoaded]);
 
     // biome-ignore lint/a11y/noRedundantAlt: The use of this component justifies this alt text
     return <img {...imgDefaultProps} ref={ref} alt="image" src={src} onLoad={onLoad} style={imageStyles} />;

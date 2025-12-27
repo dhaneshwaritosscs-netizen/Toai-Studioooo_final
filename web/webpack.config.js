@@ -308,6 +308,12 @@ module.exports = composePlugins(
                 pathRewrite: { "^/api": "" },
                 secure: false,
               },
+              "/static": {
+                target: `${DJANGO_HOSTNAME}`,
+                changeOrigin: true,
+                secure: false,
+                logLevel: "debug",
+              },
               "/user": {
                 target: `${DJANGO_HOSTNAME}`,
                 changeOrigin: true,
@@ -328,8 +334,8 @@ module.exports = composePlugins(
                 changeOrigin: true,
                 secure: false,
                 bypass: function(req, res, proxyOptions) {
-                  // Don't proxy static files - let webpack serve them
-                  if (req.url.startsWith('/static/') || req.url.startsWith('/react-app/')) {
+                  // Don't proxy react-app files - let webpack serve them
+                  if (req.url.startsWith('/react-app/')) {
                     return false;
                   }
                 },

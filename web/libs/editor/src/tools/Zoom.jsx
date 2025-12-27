@@ -71,6 +71,8 @@ const _Tool = types
   })
   .volatile(() => ({
     canInteractWithRegions: false,
+    _panRafId: null,
+    _pendingPanDelta: { x: 0, y: 0 },
   }))
   .views((self) => ({
     get viewClass() {
@@ -92,6 +94,15 @@ const _Tool = types
     mouseupEv() {
       self.mode = "viewing";
       self.stageContainer.style.cursor = "grab";
+
+      // Flush any remaining pan delta so the final position is applied immediately
+      if (self._panRafId != null) {
+        cancelAnimationFrame(self._panRafId);
+        self._panRafId = null;
+      }
+      if (self._pendingPanDelta.x !== 0 || self._pendingPanDelta.y !== 0) {
+        self._flushPan();
+      }
     },
 
     updateCursor() {
@@ -104,12 +115,26 @@ const _Tool = types
       self.updateCursor();
     },
 
-    handleDrag(ev) {
+    _flushPan() {
       const item = self.obj;
-      const posx = item.zoomingPositionX + ev.movementX;
-      const posy = item.zoomingPositionY + ev.movementY;
+      const { x, y } = self._pendingPanDelta;
 
-      item.setZoomPosition(posx, posy);
+      self._pendingPanDelta.x = 0;
+      self._pendingPanDelta.y = 0;
+      self._panRafId = null;
+
+      // Apply the accumulated delta once per frame for smoother panning
+      item.setZoomPosition(item.zoomingPositionX + x, item.zoomingPositionY + y);
+    },
+
+    handleDrag(ev) {
+      // Accumulate deltas and apply on rAF to avoid jitter from high-frequency mousemove events
+      self._pendingPanDelta.x += ev.movementX;
+      self._pendingPanDelta.y += ev.movementY;
+
+      if (self._panRafId == null) {
+        self._panRafId = requestAnimationFrame(self._flushPan);
+      }
     },
 
     mousemoveEv(ev) {

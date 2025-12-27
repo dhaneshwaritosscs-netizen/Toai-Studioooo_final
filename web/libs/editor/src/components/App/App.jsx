@@ -176,41 +176,24 @@ class App extends Component {
   }
 
   _renderLeftNavigation() {
-    // Add global error handler to suppress MobX errors
-    if (!window._mobxErrorHandlerAdded) {
-      window.addEventListener('error', (event) => {
-        if (event.message && event.message.includes('mergeCache')) {
-          event.preventDefault();
-          event.stopPropagation();
-          console.warn('Suppressed MobX mergeCache error during navigation');
-          return false;
-        }
-      });
-      window._mobxErrorHandlerAdded = true;
-    }
-
     // Simple navigation without any state management
     const navigateToTask = (direction) => {
       const currentUrl = window.location.href;
+      // Match URL pattern: /projects/{id}/data?tab={tabId}&task={taskId}
       const urlMatch = currentUrl.match(/\/projects\/(\d+)\/data\?tab=(\d+)&task=(\d+)/);
       
       if (urlMatch) {
         const projectId = urlMatch[1];
         const tabId = urlMatch[2];
-        const currentTaskId = parseInt(urlMatch[3]);
+        const currentTaskId = parseInt(urlMatch[3], 10);
         const newTaskId = direction === 'next' ? currentTaskId + 1 : currentTaskId - 1;
         
-        // Navigate to the new task URL within the same project
-        const newUrl = `/projects/${projectId}/data?tab=${tabId}&task=${newTaskId}`;
+        // Prevent going to task 0 or negative
+        if (newTaskId < 1) return;
         
-        // Use a completely different approach - create a form and submit it
-        const form = document.createElement('form');
-        form.method = 'GET';
-        form.action = newUrl;
-        form.style.display = 'none';
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
+        // Navigate to the new task URL
+        const newUrl = `/projects/${projectId}/data?tab=${tabId}&task=${newTaskId}`;
+        window.location.href = newUrl;
       }
     };
 

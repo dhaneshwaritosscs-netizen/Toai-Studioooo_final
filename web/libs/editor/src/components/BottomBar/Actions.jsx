@@ -4,7 +4,6 @@ import { Button } from "../../common/Button/Button";
 import { Elem } from "../../utils/bem";
 import { isSelfServe } from "../../utils/billing";
 import { FF_BULK_ANNOTATION } from "../../utils/feature-flags";
-import { EditingHistory } from "./HistoryActions";
 import { DynamicPreannotationsToggle } from "../AnnotationTab/DynamicPreannotationsToggle";
 import { AutoAcceptToggle } from "../AnnotationTab/AutoAcceptToggle";
 import { GroundTruth } from "../CurrentEntity/GroundTruth";
@@ -18,8 +17,6 @@ export const Actions = ({ store }) => {
 
   return (
     <Elem name="section">
-      {!isPrediction && !isViewAll && store.hasInterface("edit-history") && <EditingHistory entity={entity} />}
-
       {store.description && store.hasInterface("instruction") && (
         <Tooltip alignment="top-left" title="Show instructions">
           <Button

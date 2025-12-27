@@ -1,6 +1,22 @@
 .image {
   top: 0;
+  left: 0;
   position: absolute;
   overflow: hidden;
+}
+
+.image__zoom {
+  position: absolute;
+  inset: 0;
+  overflow: hidden; // prevent scaled content from overflowing outside the image box
+  transform-origin: left top;
+  transition: transform 160ms ease-in-out; // smooth zoom animation
+  will-change: transform;
+}
+
+.image__content {
+  position: absolute;
+  inset: 0;
+  transform-origin: left top;
 }
 

@@ -445,7 +445,6 @@ const CanvasOverlay = observer(({ item }) => {
       ref={(ref) => {
         item.setOverlayRef(ref);
       }}
-      style={item.imageTransform}
     />
   );
 });
@@ -748,23 +747,36 @@ export default observer(
      * Handle to zoom
      */
     handleZoom = (e) => {
+      const { item } = this.props;
+      
+      // Only zoom if zoom is enabled for this item
+      if (!item.zoom) {
+        return;
+      }
+
       /**
-       * Disable if user doesn't use ctrl
+       * Only zoom when Ctrl key is pressed
        */
       if (e.evt && !e.evt.ctrlKey) {
         return;
       }
+      
       if (e.evt && e.evt.ctrlKey) {
         /**
-         * Disable scrolling page
+         * Disable scrolling page and prevent default browser behavior
          */
         e.evt.preventDefault();
-      }
-      if (e.evt) {
-        const { item } = this.props;
+        e.evt.stopPropagation();
+        
         const stage = item.stageRef;
+        if (!stage) return;
 
-        item.handleZoom(e.evt.deltaY, stage.getPointerPosition());
+        // Get mouse position relative to stage for zoom in place
+        const pointerPos = stage.getPointerPosition();
+        if (pointerPos) {
+          // deltaY > 0 means scroll down (zoom out), deltaY < 0 means scroll up (zoom in)
+          item.handleZoom(e.evt.deltaY, pointerPos);
+        }
       }
     };
 
@@ -870,8 +882,10 @@ export default observer(
       if (store.annotationStore.viewingAll) return null;
 
       const tools = item.getToolsManager().allTools();
+      // Filter out control tools (they will be shown in bottom bar instead)
+      const filteredTools = tools.filter((tool) => tool.group !== "control");
 
-      return <Toolbar tools={tools} />;
+      return <Toolbar tools={filteredTools} />;
     }
 
     render() {
@@ -884,17 +898,21 @@ export default observer(
       // TODO fix me
       if (!store.task || !item.currentSrc) return null;
 
-      const containerStyle = {};
+      const containerStyle = {
+        height: "100%",
+        maxHeight: "100vh",
+      };
 
       const containerClassName = styles.container;
 
       const paginationEnabled = !!item.isMultiItem;
 
       if (getRoot(item).settings.fullscreen === false) {
-        containerStyle.maxWidth = item.maxwidth;
-        containerStyle.maxHeight = item.maxheight;
-        containerStyle.width = item.width;
-        containerStyle.height = item.height;
+        // Ensure image fits within viewport
+        containerStyle.maxWidth = "100%";
+        containerStyle.maxHeight = "100vh";
+        containerStyle.width = "100%";
+        containerStyle.height = "100%";
       }
 
       if (!store.settings.enableSmoothing && item.zoomScale > 1) {
@@ -915,6 +933,30 @@ export default observer(
 
       const imageIsLoaded = item.imageIsLoaded || !isFF(FF_LSDV_4583_6);
       const isViewingAll = store.annotationStore.viewingAll;
+
+      // Single shared zoom surface: image + DOM overlays + Konva Stage are scaled together as one rigid canvas.
+      // Keep existing zoom state (item.zoomScale / item.zoomingPositionX|Y) but apply it only on the shared wrapper.
+      const zoomPanX = item.zoomingPositionX + (isFF(FF_ZOOM_OPTIM) ? item.alignmentOffset.x : 0);
+      const zoomPanY = item.zoomingPositionY + (isFF(FF_ZOOM_OPTIM) ? item.alignmentOffset.y : 0);
+
+      // Get tags/labels that match this image
+      const annotation = item.annotation;
+      const relatedTags = [];
+      if (annotation && annotation.root) {
+        Tree.traverseTree(annotation.root, (node) => {
+          const toname = node.toname || node.toName;
+          if (toname === item.name && (
+            node.type === "labels" || 
+            node.type === "rectanglelabels" || 
+            node.type === "polygonlabels" ||
+            node.type === "brushlabels" ||
+            node.type === "ellipselabels" ||
+            node.type === "keypointlabels"
+          )) {
+            relatedTags.push(node);
+          }
+        });
+      }
 
       return (
         <ObjectTag item={item} className={wrapperClasses.join(" ")}>
@@ -949,87 +991,113 @@ export default observer(
             className={containerClassName}
             style={containerStyle}
           >
-            <div
-              ref={(node) => {
-                this.filler = node;
-              }}
-              className={styles.filler}
-              style={{ width: "100%", marginTop: item.fillerHeight }}
-            />
-
-            {isFF(FF_LSDV_4583_6) ? (
-              <Image
-                ref={(ref) => {
-                  item.setImageRef(ref);
-                  this.imageRef.current = ref;
+            <div className={styles["image-section"]}>
+              <div
+                ref={(node) => {
+                  this.filler = node;
                 }}
-                usedValue={item.usedValue}
-                imageEntity={item.currentImageEntity}
-                imageTransform={item.imageTransform}
-                updateImageSize={item.updateImageSize}
-                size={item.canvasSize}
-                overlay={<CanvasOverlay item={item} />}
+                className={styles.filler}
+                style={{ width: "100%", marginTop: item.fillerHeight }}
               />
-            ) : (
-              <div className={[styles.frame, ...imagePositionClassnames].join(" ")} style={item.canvasSize}>
-                <img
-                  ref={(ref) => {
-                    item.setImageRef(ref);
-                    this.imageRef.current = ref;
+
+              <div className={styles.zoomContainer}>
+                <div
+                  className={styles.zoomSurface}
+                  style={{
+                    // CSS vars are used so SCSS can keep the transform definition minimal and centralized.
+                    "--zoom": item.zoomScale,
+                    "--pan-x": `${zoomPanX}px`,
+                    "--pan-y": `${zoomPanY}px`,
                   }}
-                  loading={isFF(FF_DEV_3077) && !item.lazyoff ? "lazy" : "false"}
-                  style={item.imageTransform}
-                  src={item.currentSrc}
-                  onLoad={(e) => {
-                    item.updateImageSize(e);
-                    item.currentImageEntity.setImageLoaded(true);
-                  }}
-                  onError={this.handleError}
-                  crossOrigin={item.imageCrossOrigin}
-                  alt="LS"
-                />
-                <CanvasOverlay item={item} />
+                >
+                  {isFF(FF_LSDV_4583_6) ? (
+                    <Image
+                      ref={(ref) => {
+                        item.setImageRef(ref);
+                        this.imageRef.current = ref;
+                      }}
+                      usedValue={item.usedValue}
+                      imageEntity={item.currentImageEntity}
+                      // IMPORTANT: no zoom/pan transform on the image layer; zoom is applied on the shared `zoomSurface`.
+                      imageZoomTransform={undefined}
+                      imageContentTransform={item.imageContentTransform}
+                      imageFilterStyle={item.imageFilterStyle}
+                      updateImageSize={item.updateImageSize}
+                      size={item.canvasSize}
+                      overlay={<CanvasOverlay item={item} />}
+                    />
+                  ) : (
+                    <div className={[styles.frame, ...imagePositionClassnames].join(" ")} style={item.canvasSize}>
+                      <div className={styles.zoomContent} style={item.imageContentTransform}>
+                        <img
+                          ref={(ref) => {
+                            item.setImageRef(ref);
+                            this.imageRef.current = ref;
+                          }}
+                          loading={isFF(FF_DEV_3077) && !item.lazyoff ? "lazy" : "false"}
+                          style={item.imageFilterStyle}
+                          src={item.currentSrc}
+                          onLoad={(e) => {
+                            item.updateImageSize(e);
+                            item.currentImageEntity.setImageLoaded(true);
+                          }}
+                          onError={this.handleError}
+                          crossOrigin={item.imageCrossOrigin}
+                          alt="LS"
+                        />
+                        <CanvasOverlay item={item} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* @todo this is dirty hack; rewrite to proper async waiting for data to load */}
+                  <EntireStage
+                    item={item}
+                    crosshairRef={this.crosshairRef}
+                    onClick={this.handleOnClick}
+                    imagePositionClassnames={imagePositionClassnames}
+                    state={this.state}
+                    onMouseEnter={() => {
+                      if (this.crosshairRef.current) {
+                        this.crosshairRef.current.updateVisibility(true);
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (this.crosshairRef.current) {
+                        this.crosshairRef.current.updateVisibility(false);
+                      }
+                      const { width: stageWidth, height: stageHeight } = item.canvasSize;
+                      const { offsetX: mouseposX, offsetY: mouseposY } = e.evt;
+                      const newEvent = { ...e };
+
+                      if (mouseposX <= 0) {
+                        e.offsetX = 0;
+                      } else if (mouseposX >= stageWidth) {
+                        e.offsetX = stageWidth;
+                      }
+
+                      if (mouseposY <= 0) {
+                        e.offsetY = 0;
+                      } else if (mouseposY >= stageHeight) {
+                        e.offsetY = stageHeight;
+                      }
+                      this.handleMouseMove(newEvent);
+                    }}
+                    onDragMove={this.updateCrosshair}
+                    onMouseDown={this.handleMouseDown}
+                    onMouseMove={this.handleMouseMove}
+                    onMouseUp={this.handleMouseUp}
+                    onWheel={item.zoom ? this.handleZoom : () => {}}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {relatedTags.length > 0 && (
+              <div className={styles["tags-section"]}>
+                {relatedTags.map((tag) => Tree.renderItem(tag, annotation))}
               </div>
             )}
-            {/* @todo this is dirty hack; rewrite to proper async waiting for data to load */}
-            <EntireStage
-              item={item}
-              crosshairRef={this.crosshairRef}
-              onClick={this.handleOnClick}
-              imagePositionClassnames={imagePositionClassnames}
-              state={this.state}
-              onMouseEnter={() => {
-                if (this.crosshairRef.current) {
-                  this.crosshairRef.current.updateVisibility(true);
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (this.crosshairRef.current) {
-                  this.crosshairRef.current.updateVisibility(false);
-                }
-                const { width: stageWidth, height: stageHeight } = item.canvasSize;
-                const { offsetX: mouseposX, offsetY: mouseposY } = e.evt;
-                const newEvent = { ...e };
-
-                if (mouseposX <= 0) {
-                  e.offsetX = 0;
-                } else if (mouseposX >= stageWidth) {
-                  e.offsetX = stageWidth;
-                }
-
-                if (mouseposY <= 0) {
-                  e.offsetY = 0;
-                } else if (mouseposY >= stageHeight) {
-                  e.offsetY = stageHeight;
-                }
-                this.handleMouseMove(newEvent);
-              }}
-              onDragMove={this.updateCrosshair}
-              onMouseDown={this.handleMouseDown}
-              onMouseMove={this.handleMouseMove}
-              onMouseUp={this.handleMouseUp}
-              onWheel={item.zoom ? this.handleZoom : () => {}}
-            />
           </div>
 
           {toolsReady && this.renderTools()}
@@ -1098,10 +1166,11 @@ const EntireStage = observer(
         className={[styles["image-element"], ...imagePositionClassnames].join(" ")}
         width={size.width}
         height={size.height}
-        scaleX={item.zoomScale}
-        scaleY={item.zoomScale}
-        x={position.x}
-        y={position.y}
+        // IMPORTANT: no zoom transform on the annotation layer; zoom is applied on the shared `zoomSurface`.
+        scaleX={1}
+        scaleY={1}
+        x={0}
+        y={0}
         offsetX={item.stageTranslate.x}
         offsetY={item.stageTranslate.y}
         rotation={item.rotation}

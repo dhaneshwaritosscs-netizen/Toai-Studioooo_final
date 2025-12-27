@@ -247,3 +247,12 @@
     width: calc(100% - 8px);
   }
 }
+
+// Use browser-native zoom cursors for zoom controls (no SVG/data-URI cursors).
+button[aria-label="zoom-in"] {
+  cursor: zoom-in;
+}
+
+button[aria-label="zoom-out"] {
+  cursor: zoom-out;
+}
